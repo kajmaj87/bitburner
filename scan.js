@@ -1,5 +1,6 @@
 import { bus } from "./libs/comm.js"
 import { logger } from "./libs/log.js"
+
 /** @param {NS} ns **/
 export async function main(ns) {
 	const comm = bus(ns), log = logger(ns)
@@ -15,8 +16,9 @@ export async function main(ns) {
 			growth: ns.getServerGrowth(s),
 			growthToFull: ns.growthAnalyze(s, moneyRatio(s)),
 			growthToHalf: ns.growthAnalyze(s, moneyRatio(s) / 2 > 1 ? moneyRatio(s)/2 : 1),
+            growTime: ns.getGrowTime(s),
 			moneyPct: ns.getServerMoneyAvailable(s)/ns.getServerMaxMoney(s),
-			moneyIncForThread: 1/moneyRatio(s) < 0.99 ? ns.getServerMoneyAvailable(s) * 0.01 / ns.growthAnalyze(s, 1.01) : 0
+			moneyIncForThreadSecond: 1/moneyRatio(s) < 0.99 ? ns.getServerMoneyAvailable(s) * 0.01 / ns.growthAnalyze(s, 1.01) / ns.getGrowTime(s) : 0
 		})
 	}
 	await servers.reduce(sendServerInfo, undefined)
