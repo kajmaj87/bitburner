@@ -1,4 +1,4 @@
-import {bus} from "/libs/lib.js"
+import {bus} from "/libs/comm.js"
 /** @param {NS} ns **/
 export async function main(ns) {
 	const comm = bus(ns)

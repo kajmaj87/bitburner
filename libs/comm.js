@@ -44,15 +44,15 @@ export function bus(ns) {
 				await ns.sleep(interval)
 			}
 		},
-		registerReader: (callback, port = 1) => {
+		registerReader: (callback, port = 1, predicate = () => true) => {
 			log.info(`Registering reader to listen on port ${port}`)
-			readListeners.push({ callback: callback, portHandle: ns.getPortHandle(port) })
+			readListeners.push({ callback: callback, portHandle: ns.getPortHandle(port), predicate: predicate })
 		},
 		readLoop: async (interval = 100) => {
 			while (true) {
 				await readListeners.reduce(async (memo, listener) => {
 					await memo
-					if (!listener.portHandle.empty()) {
+					if (!listener.portHandle.empty() && listener.predicate()) {
 						const message = listener.portHandle.read()
 						await parseAndCallback(message, listener.callback)
 					}

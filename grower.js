@@ -7,7 +7,6 @@ export async function main(ns) {
     const host = ns.getHostname()
     const growScript = 'grow.js'
     const reservedMemory = ns.args[0] || 16
-    const willFitInMemory = (s, reserve) => ns.getScriptRam(s) < (ns.getServerMaxRam(host) - reserve - ns.getServerUsedRam(host))
     var growPID = 0
     while (true) {
         if (willFitInMemory(growScript, reservedMemory)) {

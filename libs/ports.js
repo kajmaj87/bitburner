@@ -1,0 +1,1 @@
+export const PORTS = { SCAN_INFO: 1, SERVER_QUERY: 2, WORK_QUEUE: 3}
