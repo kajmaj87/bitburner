@@ -8,6 +8,7 @@ export async function main(ns) {
     const comm = bus(ns)
     const log = logger(ns)
     const os = system(ns)
+    const reservedMemory = args[0] || 0
     var workerPID = 0
     comm.registerReader(job => {
         log.info(`Received job: ${job.type} on ${job.target} (pid: ${workerPID})`)
@@ -15,16 +16,12 @@ export async function main(ns) {
             ns.run('miner.js', 1, job.target, workerPID)
         }
         if (job.type == JOBS.GROW) {
-
+            ns.run('grow.js', 1, job.target, workerPID)
         }
         if (job.type == JOBS.WEAKEN) {
-
+            ns.run('weaken.js', 1, job.target, workerPID)
         }
         workerPID++
-    }, PORTS.WORK_QUEUE, () => {
-        const canFit = os.willFitInMemory('miner.js')
-        log.info(`Checking if should receive message: ${canFit}`)
-        return canFit
-    });
+    }, PORTS.WORK_QUEUE, () => os.willFitInMemory('miner.js', reservedMemory));
     await comm.readLoop()
 }
