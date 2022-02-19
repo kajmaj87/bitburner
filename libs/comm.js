@@ -1,4 +1,4 @@
-import { logger } from "./libs/log.js"
+import { logger } from "/libs/log.js"
 
 export function bus(ns) {
 	const log = logger(ns)

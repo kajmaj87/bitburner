@@ -1,4 +1,4 @@
-import {logger} from "./libs/log.js"
+import {logger} from "/libs/log.js"
 /** @param {NS} ns **/
 export async function main(ns) {
     const log = logger(ns)

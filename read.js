@@ -1,4 +1,4 @@
-import {bus} from "./libs/comm.js"
+import {bus} from "/libs/comm.js"
 /** @param {NS} ns **/
 export async function main(ns) {
 	const port = ns.args[0]

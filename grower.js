@@ -1,12 +1,12 @@
-import { bus } from "./libs/comm.js"
-import { logger } from "./libs/log.js"
+import { bus } from "/libs/comm.js"
+import { logger } from "/libs/log.js"
 /** @param {NS} ns **/
 export async function main(ns) {
     const comm = bus(ns)
     const log = logger(ns)
     const host = ns.getHostname()
     const growScript = 'grow.js'
-    const reservedMemory = 16
+    const reservedMemory = ns.args[0] || 16
     const willFitInMemory = (s, reserve) => ns.getScriptRam(s) < (ns.getServerMaxRam(host) - reserve - ns.getServerUsedRam(host))
     var growPID = 0
     while (true) {
@@ -14,9 +14,10 @@ export async function main(ns) {
             await comm.ask(async servers => {
                 const bestGrow = servers.map(s => ({
                     host: s.host,
+                    rooted: s.rooted,
                     time: s.growTime,
                     rate: s.moneyIncForThreadSecond
-                })).sort((a, b) => b.rate - a.rate)[0]
+                })).filter(s=>s.rooted).sort((a, b) => b.rate - a.rate)[0]
                 log.info(`Best server to grow is ${bestGrow.host}. Money inc per thread: ${bestGrow.rate}`)
                 log.info(`Server will grow in ${bestGrow.time}s.`)
                 log.info(`Starting a grower for ${bestGrow.host}`)

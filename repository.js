@@ -1,5 +1,5 @@
-import { bus } from "./libs/comm.js"
-import { logger } from "./libs/log.js"
+import { bus } from "/libs/comm.js"
+import { logger } from "/libs/log.js"
 /** @param {NS} ns **/
 export async function main(ns) {
 	const comm = bus(ns)
