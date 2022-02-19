@@ -10,20 +10,22 @@ export async function main(ns) {
     const randomElement = (list) => list[Math.floor((Math.random() * list.length))]
     while (true) {
         if (!workQueue.full()) {
-            log.info(`Work queue is not full yet, dispatching task`)
             await comm.ask(async servers => {
-                const hosts = servers.filter(s => s.rooted && s.host != 'home').map(s => s.host)
-                const rnd = Math.random()
+                const hosts = servers.filter(s => s.rooted && s.host != 'home')
+                const target = randomElement(hosts)
                 var job = {}
-                if (rnd < 0.05) {
-                    job.type = JOBS.WEAKEN
-                } else if (rnd < 0.15) {
+                if(target.moneyPct < Math.random() - 0.1){
                     job.type = JOBS.GROW
-                } else if (rnd < 1) {
-                    job.type = JOBS.MINE
+                } else {
+                    const securityDelta = target.security/target.minSecurity - 1
+                    if(Math.random() < securityDelta / 20) {
+                        job.type = JOBS.WEAKEN
+                    } else {
+                        job.type = JOBS.MINE
+                    }
                 }
-                job.target = randomElement(hosts)
-                // log.info(`Rnd ${rnd} ==> ${job.type}@${job.target}`)
+                job.target = target.host
+                log.info(`Work queue is not full yet, dispatching task ${job.type}@${job.target}`)
                 await comm.tell(job, PORTS.WORK_QUEUE)
             }, "", 2)
         }

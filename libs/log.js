@@ -1,8 +1,9 @@
 export function logger(ns){
+	ns.disableLog('ALL')
 	const host = ns.getHostname()
 	return {
 		info: (message) => {
-			ns.tprint(`@${host}: ${message}`)
+			ns.print(`@${host}: ${message}`)
 		},
 		debug: (message) => {
 			ns.print(`@${host}: ${message}`)

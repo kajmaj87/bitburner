@@ -7,6 +7,8 @@ export function scan(ns) {
             totalRam: ns.getServerMaxRam(s),
             freeRam: ns.getServerMaxRam(s) - ns.getServerUsedRam(s),
             growth: ns.getServerGrowth(s),
+            security: ns.getServerSecurityLevel(s),
+            minSecurity: ns.getServerMinSecurityLevel(s),
             growthToFull: ns.growthAnalyze(s, moneyRatio(s) > 1 ? moneyRatio(s) : 1),
             growthToHalf: ns.growthAnalyze(s, moneyRatio(s) / 2 > 1 ? moneyRatio(s) / 2 : 1),
             growTime: ns.getGrowTime(s),
