@@ -8,8 +8,8 @@ export async function main(ns) {
     const comm = bus(ns)
     const log = logger(ns)
     const os = system(ns)
-    const reservedMemory = args[0] || 0
-    const canStartNextJob = () => os.willFitInMemory('miner.js', reservedMemory) && os.willFitInMemory('grow.js', reservedMemory) && os.willFitInMemory('weaken.js', reservedMemory)
+    const reservedMemory = ns.args[0] || 0
+    const canStartNextJob = () => os.willFitInMemory('miner.js', reservedMemory) && os.willFitInMemory('grower.js', reservedMemory) && os.willFitInMemory('weakener.js', reservedMemory)
     var workerPID = 0
     comm.registerReader(job => {
         log.info(`Received job: ${job.type} on ${job.target} (pid: ${workerPID})`)
@@ -17,10 +17,10 @@ export async function main(ns) {
             ns.run('miner.js', 1, job.target, workerPID)
         }
         if (job.type == JOBS.GROW) {
-            ns.run('grow.js', 1, job.target, workerPID)
+            ns.run('grower.js', 1, job.target, workerPID)
         }
         if (job.type == JOBS.WEAKEN) {
-            ns.run('weaken.js', 1, job.target, workerPID)
+            ns.run('weakener.js', 1, job.target, workerPID)
         }
         workerPID++
     }, PORTS.WORK_QUEUE, canStartNextJob);

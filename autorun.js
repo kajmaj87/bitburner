@@ -7,8 +7,6 @@ export async function main(ns) {
 	ns.tprint(`Running ${thisScript} on ${ns.getHostname()}`)
 	await servers.filter(s => s != origin).reduce(async (memo, s) => {
 		await memo
-		ns.tprint(`Copied ${args} and ${thisScript} on ${s}`)
-		ns.killall(s);
 		ns.tprint(`Killed all processes on ${s}`)
 		ns.tprint(`Starting ${thisScript} on ${s}`)
 		ns.exec(thisScript, s, 1, ns.getHostname(), ...args);
