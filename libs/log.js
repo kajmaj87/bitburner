@@ -2,6 +2,10 @@ export function logger(ns){
 	ns.disableLog('ALL')
 	const host = ns.getHostname()
 	return {
+		yell: (message) => {
+			ns.tprint(`@${host}: ${message}`)
+			ns.print(`@${host}: ${message}`)
+		},
 		info: (message) => {
 			ns.print(`@${host}: ${message}`)
 		},

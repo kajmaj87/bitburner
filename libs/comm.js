@@ -13,7 +13,9 @@ export function bus(ns) {
 		try {
 			const obj = JSON.parse(message)
 			log.debug(`Message from ${obj.sender}: ${obj.message}`)
-			await callback(JSON.parse(obj.message), obj)
+			const msg = JSON.parse(obj.message)
+			await callback(msg, obj)
+			return msg
 		} catch (e) {
 			log.error(`Unable to parse ${message} as JSON`, e)
 		}
@@ -37,11 +39,19 @@ export function bus(ns) {
 				if (!answerPort.empty()) {
 					log.info(`Received answer on port ${senderPort}`)
 					const message = answerPort.read()
-					await parseAndCallback(message, callback)
-					break;
+					return await parseAndCallback(message, callback)
 				}
 				log.info(`Still waiting for reply on port ${senderPort}...`)
 				await ns.sleep(interval)
+			}
+		},
+		peek: (port) => {
+			const portHandle = ns.getPortHandle(port)
+			if (!portHandle.empty()) {
+				const obj = JSON.parse(portHandle.peek())
+				return JSON.parse(obj.message)
+			} else {
+				return {}
 			}
 		},
 		registerReader: (callback, port = 1, predicate = () => true) => {

@@ -14,13 +14,17 @@ export async function main(ns) {
     comm.registerReader(job => {
         log.info(`Received job: ${job.type} on ${job.target} (pid: ${workerPID})`)
         if (job.type == JOBS.MINE) {
-            ns.run('miner.js', 1, job.target, workerPID)
+            if (ns.getServerRequiredHackingLevel(job.target) <= ns.getHackingLevel()) {
+                ns.run('miner.js', 1, job.target, workerPID, ...job.args)
+            } else {
+                log.info(`Discarded ${job.type}@${job.target} as it is too hard`)
+            }
         }
         if (job.type == JOBS.GROW) {
-            ns.run('grower.js', 1, job.target, workerPID)
+            ns.run('grower.js', 1, job.target, workerPID, ...job.args)
         }
         if (job.type == JOBS.WEAKEN) {
-            ns.run('weakener.js', 1, job.target, workerPID)
+            ns.run('weakener.js', 1, job.target, workerPID, ...job.args)
         }
         workerPID++
     }, PORTS.WORK_QUEUE, canStartNextJob);
