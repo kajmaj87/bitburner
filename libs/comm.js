@@ -58,7 +58,7 @@ export function bus(ns) {
 			log.info(`Registering reader to listen on port ${port}`)
 			readListeners.push({ callback: callback, portHandle: ns.getPortHandle(port), predicate: predicate })
 		},
-		readLoop: async (interval = 100) => {
+		readLoop: async (interval = 10) => {
 			while (true) {
 				await readListeners.reduce(async (memo, listener) => {
 					await memo
