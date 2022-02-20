@@ -9,25 +9,30 @@ export async function main(ns) {
     const log = logger(ns)
     const os = system(ns)
     const reservedMemory = ns.args[0] || 0
-    const canStartNextJob = () => os.willFitInMemory('miner.js', reservedMemory) && os.willFitInMemory('grower.js', reservedMemory) && os.willFitInMemory('weakener.js', reservedMemory)
+    const canStartNextJob = (threads) =>
+        os.willFitInMemory('miner.js', threads, reservedMemory)
+        && os.willFitInMemory('grower.js', threads, reservedMemory)
+        && os.willFitInMemory('weakener.js', threads, reservedMemory)
+    const maxJobs = 50
+    const threadsPerJob = Math.ceil(os.howManyWillFit('miner.js')/maxJobs)
     var workerPID = 0
     comm.registerReader(async jobs => {
         while (jobs.length > 0) {
-            if (canStartNextJob()) {
+            if (canStartNextJob(threadsPerJob)) {
                 const job = jobs.pop()
                 log.info(`Received job: ${job.type} on ${job.target} (pid: ${workerPID})`)
                 if (job.type == JOBS.MINE) {
                     if (ns.getServerRequiredHackingLevel(job.target) <= ns.getHackingLevel()) {
-                        ns.run('miner.js', 1, job.target, workerPID, ...job.args)
+                        ns.run('miner.js', threadsPerJob, job.target, workerPID, ...job.args)
                     } else {
                         log.info(`Discarded ${job.type}@${job.target} as it is too hard`)
                     }
                 }
                 if (job.type == JOBS.GROW) {
-                    ns.run('grower.js', 1, job.target, workerPID, ...job.args)
+                    ns.run('grower.js', threadsPerJob, job.target, workerPID, ...job.args)
                 }
                 if (job.type == JOBS.WEAKEN) {
-                    ns.run('weakener.js', 1, job.target, workerPID, ...job.args)
+                    ns.run('weakener.js', threadsPerJob, job.target, workerPID, ...job.args)
                 }
                 workerPID++
             } else {

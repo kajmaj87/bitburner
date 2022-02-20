@@ -24,11 +24,13 @@ export function hack(ns) {
             }
             HACKING_PROGRAMS.forEach(p => run(p.name, p.callback))
             if (sucessfulHacks.length >= ns.getServerNumPortsRequired(s)) {
-                run(NUKE.name, NUKE.callback)
-                log.yell(`Gained root access on ${s}`)
+                if (!ns.hasRootAccess(s)) {
+                    run(NUKE.name, NUKE.callback)
+                    log.yell(`Gained root access on ${s}`)
+                }
                 return ns.hasRootAccess(s)
             } else {
-                log.yell(`Could not root ${s}`)
+                log.info(`Could not root ${s}`)
                 return ns.hasRootAccess(s)
             }
         },
