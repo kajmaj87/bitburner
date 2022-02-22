@@ -1,14 +1,13 @@
 import { logger } from "/libs/log.js"
 import { scan } from "/libs/scan.js"
-import { bus } from "/libs/comm.js"
-import { PORTS } from "/libs/ports.js"
+import { bus, PORTS } from "/libs/comm.js"
 
 /** @param {NS} ns **/
 export async function main(ns) {
     const comm = bus(ns)
     const log = logger(ns)
     const scanner = scan(ns)
-    const hostnames = ns.args.length > 0 ? ns.args : (await comm.ask(() => { }, "", PORTS.SERVER_QUERY)).map(s => s.host)
+    const hostnames = ns.args.length > 0 ? ns.args : (await comm.ask(PORTS.SERVER_QUERY)).map(s => s.host)
     const allHosts = [...hostnames, ...ns.getPurchasedServers()]
     const servers = hostnames.map(h=>scanner.info(h))
     const allServers = allHosts.map(h=>scanner.info(h))

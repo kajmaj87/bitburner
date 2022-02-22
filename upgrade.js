@@ -4,10 +4,10 @@ import { logger } from "/libs/log.js"
 export async function main(ns) {
     const log = logger(ns)
     const lowest = f => {
-        var low = 1_000_000;
+        var low = undefined;
         var lowestIndex = -1;
         for (var i = 0; i < ns.hacknet.numNodes(); i++) {
-            if (f(i) < low) {
+            if (low == undefined || f(i) < low) {
                 low = f(i)
                 lowestIndex = i
             }

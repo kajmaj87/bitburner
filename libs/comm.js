@@ -1,5 +1,7 @@
 import { logger } from "/libs/log.js"
 
+export const PORTS = { SCAN_INFO: 1, SERVER_QUERY: 2, WORK_QUEUE: 3 }
+
 export function bus(ns) {
 	const log = logger(ns)
 	const host = ns.getHostname()
@@ -29,7 +31,7 @@ export function bus(ns) {
 			await ns.writePort(port, toSend)
 		},
 		// send some info and wait for reply
-		ask: async (callback, message, port, interval = 1000, timeout = 5000) => {
+		ask: async (port, callback = () => {}, message = "", interval = 1000, timeout = 5000) => {
 			const senderPort = Math.floor(Math.random() * 10) + 10
 			const toSend = createQuery(message, senderPort, true)
 			log.debug(`Asking on port ${port}: ${toSend}`)

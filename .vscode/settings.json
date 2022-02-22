@@ -1,3 +1,8 @@
 {
-    "bitburner.authToken": "PuM45JvPTcSWZ7igSqlD+7mUYHeUehABLKFWbOAtoHrKBfL6BtK0Cy3IW283Y3gA"
+    "bitburner.authToken": "PuM45JvPTcSWZ7igSqlD+7mUYHeUehABLKFWbOAtoHrKBfL6BtK0Cy3IW283Y3gA",
+    "javascript.preferences.importModuleSpecifier": "non-relative",
+    "files.exclude": {
+        "jsconfig.json": true,
+        "NetscriptDefinitions.d.ts": true,
+    },
 }
