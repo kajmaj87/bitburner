@@ -39,7 +39,7 @@ export function bus(ns) {
 			while (true) {
 				const answerPort = ns.getPortHandle(senderPort)
 				if (!answerPort.empty()) {
-					log.info(`Received answer on port ${senderPort}`)
+					log.debug(`Received answer on port ${senderPort}`)
 					const message = answerPort.read()
 					return await parseAndCallback(message, callback)
 				}

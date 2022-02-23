@@ -26,51 +26,44 @@ export async function main(ns) {
     while (true) {
         var addedJobs = 0
         var couldAddJob = true
-        while (!workQueue.full() && couldAddJob) {
-            if (forceTarget && weakenRatio && mineRatio) {
-                const jobs = Array(JOBS_PER_BATCH).fill().map(() => createJob(forceTarget))
-                log.info(`Batch mode! Dispatching tasks ${countJobs(jobs, JOBS.MINE)}M/${countJobs(jobs, JOBS.GROW)}G/${countJobs(jobs, JOBS.WEAKEN)}W`);
-                await comm.tell(jobs, PORTS.WORK_QUEUE)
-                addedJobs++
-            } else {
-                const maxSecurityDiff = 5
-                const diffToStartWeaken = 0.5
-                const minMoneyRatio = 0.75
-                const growStartRatio = 0.8
-                const effectsOnHosts = predictor.predict(knownWorkers.map(h => h.host).flatMap(ns.ps))
-                log.info(`I have predictions`)
-                if (effectsOnHosts.length == 0) {
-                    var job = { type: JOBS.WEAKEN, target: forceTarget, args: [] }
-                log.info(`No known effects, sending weaken`)
-                    await comm.tell([job], PORTS.WORK_QUEUE)
+        while (!workQueue.full()) {
+            const maxSecurityDiff = 5
+            const diffToStartWeaken = 0.5
+            const minMoneyRatio = 0.85
+            const growStartRatio = 0.9
+            const processes = knownWorkers.map(h => h.host).flatMap(ns.ps)
+            const getnextjob = (fututrejobs, processes) => {
+                const futureprocesses = fututrejobs.map(j => ({
+                    filename: j.type == jobs.mine ? 'miner.js' : j.type == jobs.grow ?  'grower.js' : 'weakener.js',
+                    args: [j.target, date.now()],
+                    threads: 1
+                }))
+                const effectsonhosts = predictor.predict([...processes, ...futureprocesses])
+                if (effectsonhosts.length == 0) {
+                    return [{ type: jobs.weaken, target: forcetarget, args: [] }]
                 } else {
-                    const securityIsLow = h => h.maxSecurity < h.minSecurity + maxSecurityDiff
-                    const securityCanBeLowered = h => h.security > h.minSecurity + diffToStartWeaken
-                    const moneyIsGood = h => h.lowestMoney / h.moneyMax > minMoneyRatio
-                    const moneyCanGrow = h => h.money / h.moneyMax < growStartRatio
-                    log.info(`Starting reduce`)
-                    await effectsOnHosts.reduce(async (m, h) => {
-                        await m
+                    const securityislow = h => h.maxsecurity < h.minsecurity + maxsecuritydiff
+                    const securityistoolow = h => h.security < h.minsecurity
+                    const securitycanbelowered = h => h.security > h.minsecurity + difftostartweaken
+                    const moneyisgood = h => h.lowestmoney / h.moneymax > minmoneyratio
+                    const moneycangrow = h => h.money / h.moneymax < growstartratio
+                    log.info(`starting reduce`)
+                    return effectsonhosts.map(h => {
                         var job
-                        if (moneyIsGood(h) && securityIsLow(h)) {
-                            job = { type: JOBS.MINE, target: forceTarget, args: [] }
-                        }
-                        if (securityIsLow(h) && moneyCanGrow(h)) {
-                            job = { type: JOBS.GROW, target: forceTarget, args: [] }
-                        }
-                        if (securityCanBeLowered(h)) {
-                            job = { type: JOBS.WEAKEN, target: forceTarget, args: [] }
-                        }
-                        if (job) {
-                            log.info(`Starting ${job.type}@${job.target}`)
-                            await comm.tell([job], PORTS.WORK_QUEUE)
+                        if (moneyisgood(h) && securityislow(h)) {
+                            job = { type: jobs.mine, target: forcetarget, args: [] }
                         } else {
-                            log.info(`Could not find a good job to start`)
-                            couldAddJob = false
+                            job = { type: jobs.grow, target: forcetarget, args: [] }
                         }
-                    }, undefined)
+                        if (securitycanbelowered(h) && !securityistoolow(h)) {
+                            job = { type: jobs.weaken, target: forcetarget, args: [] }
+                        }
+                        return job
+                    }).filter(j => j) // remove undefined jobs
                 }
             }
+            // const newJobs = Array(JOBS_PER_BATCH).fill().reduce((fututreJobs, i) => [...fututreJobs, ...getNextJob(fututreJobs, processes)], [])
+            await comm.tell(getNextJob([], processes), PORTS.WORK_QUEUE)
         }
         // log.info(`Dispatcher added ${addedJobs} jobs to queue`)
         log.info(`Waiting...`)

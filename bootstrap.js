@@ -22,24 +22,8 @@ export async function main(ns) {
     ns.run('autorun.js', 1, 'home', 'scan.js')
     log.yell(`Scans running`)
     await ns.sleep(2000)
-    ns.run('autorun.js', 1, 'home', 'worker.js')
-    log.yell(`Workers on hacked nodes running`)
-    await ns.sleep(2000)
-    await ns.getPurchasedServers().reduce(async (m, s)=>{
-        await m 
-        await ns.scp(libs, s)
-        await ns.scp(scripts, s)
-        ns.exec('worker.js', s)
-        log.yell(`worker.js@${s} started`)
-    }, undefined)
-    log.yell(`Worker on home running pid=${ns.run('worker.js', 1, 16)}`)
-    await ns.sleep(10000)
     log.yell(`Starting autoupgrader`)
     ns.run('upgrade.js')
-    if (ns.args.length == 3) {
-        log.yell(`Dispatcher running pid=${ns.run('dispatcher.js', 1, ...ns.args)}`)
-    } else {
-        log.yell(`Dispatcher not started - no startup args provided`)
-    }
+    log.yell(`Autoworker running pid=${ns.run('autoworker.js')}`)
     log.yell(`Bootstrap done`)
 }

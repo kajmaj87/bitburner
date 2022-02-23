@@ -13,8 +13,9 @@ export async function main(ns) {
         && os.willFitInMemory('grower.js', threads, reservedMemory)
         && os.willFitInMemory('weakener.js', threads, reservedMemory)
     const maxJobs = 50
-    const threadsPerJob = 1//Math.ceil(os.howManyWillFit('miner.js')/maxJobs)
+    const threadsPerJob = 1//Math.ceil(os.howManyWillFitMax('miner.js')/maxJobs)
     comm.registerReader(async jobs => {
+        log.info(`Received new job batch of ${jobs.length}`)
         while (jobs.length > 0) {
             if (canStartNextJob(threadsPerJob)) {
                 const job = jobs.pop()

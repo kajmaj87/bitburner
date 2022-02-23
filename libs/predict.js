@@ -1,7 +1,7 @@
-import { logger } from "/libs/log.js"
-import { JOBS } from "/libs/jobs.js"
-import { findRoot } from "/libs/math.js"
-import { scan } from "/libs/scan.js"
+import { logger } from "libs/log"
+import { JOBS } from "libs/jobs"
+import { findRoot } from "libs/math"
+import { scan } from "libs/scan"
 
 /** @param {NS} ns */
 export function predict(ns) {
@@ -34,7 +34,7 @@ export function predict(ns) {
     }
     const growEffect = (host, threads) => {
         const f = x => ns.growthAnalyze(host, 1 + x) - threads
-        return findRoot(f) + 1
+        return findRoot(f, 0, 10) + 1
     }
     return {
         /** @param {import("NetscriptDefinitions").ProcessInfo[]} processes*/
@@ -51,7 +51,7 @@ export function predict(ns) {
                     host.startMoney = host.money
                     host.lowestMoney = host.money
                     host.maxSecurity = host.security
-                    host.totalMoneyGain = 0 
+                    host.totalMoneyGain = 0
                     return map.set(h, host)
                 }, new Map()
                 )
@@ -91,7 +91,7 @@ export function predict(ns) {
                     case JOBS.MINE:
                         const moneyGain = currentHost.money * ns.hackAnalyze(p.target) * p.threads * ns.hackAnalyzeChance(p.target)
                         currentHost.security += 0.002 * p.threads
-                        currentHost.money -= moneyGain 
+                        currentHost.money -= moneyGain
                         recordMoneyGain(currentHost, moneyGain)
                         recordMaxSecurity(currentHost)
                         recordMinMoney(currentHost)
@@ -99,6 +99,7 @@ export function predict(ns) {
                 }
             })
             log.info(`Totals: ${count(JOBS.MINE)}M/${count(JOBS.GROW)}G/${count(JOBS.WEAKEN)}W`)
-            return new Array(...hostInfo.values())        }
+            return hostInfo
+        }
     }
 }

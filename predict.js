@@ -1,6 +1,6 @@
-import { predict } from "/libs/predict.js"
-import { logger } from "/libs/log.js"
-import { bus, PORTS } from "/libs/comm.js"
+import { predict } from "libs/predict"
+import { logger } from "libs/log"
+import { bus, PORTS } from "libs/comm"
 /** @param {NS} ns **/
 export async function main(ns) {
     const predictor = predict(ns)

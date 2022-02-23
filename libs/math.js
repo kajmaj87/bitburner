@@ -1,4 +1,4 @@
-export const findRoot = (f, eps = 0.001, min = 0, max = 1) => {
+export const findRoot = (f, min = 0, max = 1, eps = 0.001) => {
     var a = min, b = max, c = (a + b) / 2
     var error = f(c)
     if (!((f(a) > 0 && f(b) < 0) || (f(a) < 0 && f(b) > 0))) {
