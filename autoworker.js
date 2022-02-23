@@ -78,37 +78,52 @@ export async function main(ns) {
             log.info(`Created jobs: ${log.j(jobs)}`)
             return jobs
         }
-        var pendingJobs = knownTargets.flatMap(createJobs).sort((a, b) => b.prio - a.prio)
-        const ramReserved = 0.2
-        const jobsSummary = {
+        var pendingJobs = knownTargets.flatMap(createJobs).sort((a, b) => a.prio - b.prio)
+        const ramReserved = 0.005
+        const jobsSummary = () => ({
             mine: pendingJobs.filter(j => j.type == JOBS.MINE).map(j => j.threads).reduce((sum, th) => sum + th, 0),
             grow: pendingJobs.filter(j => j.type == JOBS.GROW).map(j => j.threads).reduce((sum, th) => sum + th, 0),
             weaken: pendingJobs.filter(j => j.type == JOBS.WEAKEN).map(j => j.threads).reduce((sum, th) => sum + th, 0),
             potentialGainsInMln: pendingJobs.filter(j => j.potentialGain).map(j => j.potentialGain).reduce((sum, th) => sum + th, 0) / 1_000_000
-        }
+        })
+        const jobsAtStart = jobsSummary()
         log.info(`A total of ${pendingJobs.length} jobs were created`)
-        var job = pendingJobs.pop()
         for (var i = 0; i < knownWorkers().length; i++) {
             const worker = knownWorkers()[i]
             var jobStarted = true
-            if (!job) {
-                log.info(`Worker ${worker} had no jobs left to do`)
-            }
-            while (job && jobStarted && os.willFitInMemory('grower.js', worker)) {
-                const threadsNeeded = Math.min(os.howManyWillFitNow('grower.js', worker, ns.getServerMaxRam(worker) * ramReserved), job.threads)
-                var jobStarted = startJob(job, threadsNeeded, worker)
-                log.debug(`Job ${JSON.stringify(job)} on ${worker} was started: ${jobStarted}`)
-                if (jobStarted) {
-                    job.threads -= threadsNeeded
-                    job = job.threads > 0 ? job : pendingJobs.pop()
-                }
+            while (jobStarted && os.willFitInMemory('grower.js', worker)) {
+                const threadsNeeded = (job) => Math.min(os.howManyWillFitNow('grower.js', worker, ns.getServerMaxRam(worker) * ramReserved), job.threads)
+                const threadsLeft = () => pendingJobs.map(j => j.threads).reduce((a, b) => a + b, 0)
+                const threadsAtStart = threadsLeft()
+                pendingJobs = pendingJobs.filter(job => job.threads > 0).map(job => {
+                    const threads = threadsNeeded(job)
+                    const jobStarted = startJob(job, threads, worker)
+                    var newJob = JSON.parse(JSON.stringify(job))
+                    newJob.threads -= jobStarted ? threads : 0
+                    // if(jobStarted){
+                    //     log.info(`Started job: ${log.j(job)} on ${worker}. Mem left: ${os.howManyWillFitNow('grower.js')}`)
+                    // }
+                    return newJob
+                })
+                jobStarted = threadsLeft() < threadsAtStart
             }
         }
-        if (pendingJobs.length > 0) {
-            log.info(`Not all jobs were started! There are still ${pendingJobs.map(j => j.threads).reduce((s, t) => s + t, 0)} pending threads`)
+        if (pendingJobs.filter(j => j.threads > 0).length > 0) {
+            // const pendingType = (type) => pendingJobs.filter(j => j.type == type).map(j => j.threads).reduce((s, t) => s + t, 0)
+            // log.info(`Not all jobs were started! There are still ${pendingType(JOBS.MINE)}M/${pendingType(JOBS.GROW)}G/${pendingType(JOBS.WEAKEN)} pending threads`)
         }
-        log.info(`Jobs that were created this turn: ${log.j(jobsSummary)}`)
+        log.info(`Jobs that were created this turn: ${log.j(jobsAtStart)}`)
+        const jobsTaken = () => {
+            const j = jobsSummary()
+            return {
+                grow: jobsAtStart.grow - j.grow,
+                mine: jobsAtStart.mine - j.mine,
+                weaken: jobsAtStart.weaken - j.weaken,
+                potentialGainsInMln: jobsAtStart.potentialGainsInMln - j.potentialGainsInMln
+            }
+        }
+        log.info(`Jobs that were taken: ${log.j(jobsTaken())}`)
         log.info(`Last run at: ${new Date()}`)
-        await ns.sleep(10000)
+        await ns.sleep(1000)
     }
 }
