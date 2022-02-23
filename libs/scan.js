@@ -1,4 +1,4 @@
-import { system } from "/libs/os.js"
+import { system } from "libs/os"
 export function scan(ns) {
     const os = system(ns)
     const moneyRatio = s => ns.getServerMaxMoney(s) / ns.getServerMoneyAvailable(s)

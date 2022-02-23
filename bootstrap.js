@@ -21,7 +21,7 @@ export async function main(ns) {
     log.yell(`Repository running pid=${ns.run('repository.js', 1)}`)
     ns.run('autorun.js', 1, 'home', 'scan.js')
     log.yell(`Scans running`)
-    await ns.sleep(2000)
+    await ns.sleep(15000)
     log.yell(`Starting autoupgrader`)
     ns.run('upgrade.js')
     log.yell(`Autoworker running pid=${ns.run('autoworker.js')}`)

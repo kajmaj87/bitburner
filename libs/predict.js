@@ -34,7 +34,7 @@ export function predict(ns) {
     }
     const growEffect = (host, threads) => {
         const f = x => ns.growthAnalyze(host, 1 + x) - threads
-        return findRoot(f, 0, 10) + 1
+        return findRoot(f, 0, 100) + 1
     }
     return {
         /** @param {import("NetscriptDefinitions").ProcessInfo[]} processes*/
