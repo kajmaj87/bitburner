@@ -49,46 +49,46 @@ export async function main(ns) {
             const money = prediction ? prediction.money : ns.getServerMoneyAvailable(target)
             const lowestMoney = prediction ? prediction.lowestMoney : ns.getServerMoneyAvailable(target)
             const minThreadsForJob = 9
-            log.yell(`Target ${target} security ${security} money ${money} lowest money ${lowestMoney}`)
+            log.info(`Target ${target} security ${security} money ${money} lowest money ${lowestMoney}`)
             var jobs = []
             if (lowestMoney > ns.getServerMaxMoney(target) * bestMoneyThreshold) {
-                const threadsNeeded = Math.min(Math.floor(ns.hackAnalyze(target, lowestMoney - ns.getServerMaxMoney(target) * bestMoneyThreshold)), maxSecurityDiff/HACK_FALL)
-                log.yell(`${JSON.stringify(mineJob(target, threadsNeeded), null, 2)}`)
+                const threadsNeeded = Math.min(Math.floor(ns.hackAnalyzeThreads(target, lowestMoney - ns.getServerMaxMoney(target) * bestMoneyThreshold)), maxSecurityDiff / HACK_FALL)
+                log.info(`${JSON.stringify(mineJob(target, threadsNeeded), null, 2)}`)
                 if (threadsNeeded > minThreadsForJob) {
                     jobs.push(mineJob(target, threadsNeeded))
                 }
             }
             if (money < ns.getServerMaxMoney(target)) {
                 const requiredGrowth = ns.getServerMaxMoney(target) / money
-                const threadsNeeded = Math.min(Math.floor(ns.growthAnalyze(target, requiredGrowth)), maxSecurityDiff/GROW_FALL)
-                log.yell(`${JSON.stringify(growJob(target, threadsNeeded), null, 2)}`)
+                const threadsNeeded = Math.min(Math.floor(ns.growthAnalyze(target, requiredGrowth)), maxSecurityDiff / GROW_FALL)
+                log.info(`${JSON.stringify(growJob(target, threadsNeeded), null, 2)}`)
                 if (threadsNeeded > minThreadsForJob) {
                     jobs.push(growJob(target, threadsNeeded))
                 }
             }
             if (security > ns.getServerMinSecurityLevel(target)) {
                 const threadsNeeded = Math.floor((security - ns.getServerMinSecurityLevel(target)) / WEAKEN_RISE)
-                log.yell(`${JSON.stringify(weakenJob(target, threadsNeeded), null, 2)}`)
+                log.info(`${JSON.stringify(weakenJob(target, threadsNeeded), null, 2)}`)
                 if (threadsNeeded > minThreadsForJob) {
                     jobs.push(weakenJob(target, threadsNeeded))
                 }
             }
-            log.yell(`Created jobs: ${log.j(jobs)}`)
+            log.info(`Created jobs: ${log.j(jobs)}`)
             return jobs
         }
         const pendingJobs = knownTargets.flatMap(createJobs).sort((a, b) => b.prio - a.prio)
         const ramReserved = 0.1
-        log.yell(`A total of ${pendingJobs.length} was created`)
+        log.info(`A total of ${pendingJobs.length} was created`)
         var job = pendingJobs.pop()
         for (var i = 0; i < knownWorkers.length; i++) {
             const worker = knownWorkers[i]
             var jobStarted = true
-            log.yell(`Worker ${worker} starting. Current job: ${JSON.stringify(job)}`)
+            log.info(`Worker ${worker} starting. Current job: ${JSON.stringify(job)}`)
             while (job && jobStarted && os.willFitInMemory('grower.js', worker)) {
                 const threadsNeeded = Math.min(os.howManyWillFitNow('grower.js', worker, ns.getServerMaxRam(worker) * ramReserved), job.threads)
-                log.yell(`Threads needed: ${threadsNeeded}`)
+                log.info(`Threads needed: ${threadsNeeded}`)
                 var jobStarted = startJob(job, threadsNeeded, worker)
-                log.yell(`Job ${JSON.stringify(job)} on ${worker} was started: ${jobStarted}`)
+                log.info(`Job ${JSON.stringify(job)} on ${worker} was started: ${jobStarted}`)
                 if (jobStarted) {
                     job.threads -= threadsNeeded
                     job = job.threads > 0 ? job : pendingJobs.pop()
@@ -97,8 +97,8 @@ export async function main(ns) {
             }
         }
         if (pendingJobs.length > 0) {
-            log.yell(`Not all jobs were started! There are still ${pendingJobs.length} pending jobs`)
-            log.yell(`Jobs are ${JSON.stringify(pendingJobs, null, 2)}`)
+            log.info(`Not all jobs were started! There are still ${pendingJobs.length} pending jobs`)
+            log.info(`Jobs are ${JSON.stringify(pendingJobs, null, 2)}`)
         }
         await ns.sleep(10000)
     }
